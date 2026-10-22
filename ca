@@ -1,22 +1,39 @@
 1. Добавляем в DNS запись сайта
+
 2. 
-Создаем запрос и ключ в терминале
-openssl req -batch -new -newkey rsa:2048 -nodes -keyout server.key -subj '/C=RU/ST=Moscow/L=Moscow/O=ITDRAFT.LAN/OU=IT/CN=test.itdraft.lan/emailAddress=admin@itdraft.ru' -out server.csr
+Создаем запрос для ключа (на сервере). 
+  openssl req -batch -new -newkey rsa:2048 -nodes -keyout server.key -subj '/C=RU/ST=Moscow/L=Moscow/O=ITDRAFT.LAN/OU=IT/CN=test.itdraft.lan/emailAddress=admin@itdraft.ru' -out server.csr
+2.1 Файл CA лежит /etc/ipa/ca.crt
 
-openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -days 365 -extensions req_ext -extfile openssl.cnf
+Создаем файл openssl.cnf
+[ req ]
+default_bits = 2048
+default_md = sha256
+distinguished_name = dn
+req_extensions = req_ext
+prompt = no
+
+[ dn ]
+C = RU
+ST = YourState
+L = YourCity
+O = YourOrganization
+OU = YourOrganizationalUnit
+CN = pam.atom.lab
+
+[ req_ext ]
+subjectAltName = @alt_names
+
+[ alt_names ]
+DNS.1 = pam.atom.lab
+DNS.2 = atom.lab
 
 
-
-openssl x509 -req -in server.csr \
-  -CA ca.crt -CAkey ca.key -CAcreateserial \
-  -out server.crt -days 365 \
-  -extensions req_ext -extfile openssl.cnf
-
-
-openssl pkcs12 -export \
-  -in server.crt \
-  -inkey server.key \
-  -out server.pfx
+Подписываем ключ запроса центром сертификации (на ЦУ (ALD)
+  
+  openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -days 365 -extensions req_ext -extfile openssl.cnf
+Упаковываем в pfx
+  openssl pkcs12 -export  -in server.crt   -inkey server.key   -out server.pfx
 
 
 
@@ -40,24 +57,3 @@ Common Name - поддомен в локальной зоне
 Загрузить файл сертификата (в карточке службы в разделе Сертификат службы нажать Действия — Загрузить).
 
 
-[ req ]
-default_bits = 2048
-default_md = sha256
-distinguished_name = dn
-req_extensions = req_ext
-prompt = no
-
-[ dn ]
-C = RU
-ST = YourState
-L = YourCity
-O = YourOrganization
-OU = YourOrganizationalUnit
-CN = pam.atom.lab
-
-[ req_ext ]
-subjectAltName = @alt_names
-
-[ alt_names ]
-DNS.1 = pam.atom.lab
-DNS.2 = atom.lab
