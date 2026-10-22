@@ -3,7 +3,7 @@
 2. 
 Создаем запрос для ключа (на сервере). 
   openssl req -batch -new -newkey rsa:2048 -nodes -keyout server.key -subj '/C=RU/ST=Moscow/L=Moscow/O=ITDRAFT.LAN/OU=IT/CN=test.itdraft.lan/emailAddress=admin@itdraft.ru' -out server.csr
-2.1 Файл CA лежит /etc/ipa/ca.crt
+2.1 Файл CA лежит /etc/ssl/freeipa
 
 Создаем файл openssl.cnf
 [ req ]
