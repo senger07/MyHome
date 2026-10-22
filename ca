@@ -3,6 +3,25 @@
 Создаем запрос и ключ в терминале
 openssl req -batch -new -newkey rsa:2048 -nodes -keyout server.key -subj '/C=RU/ST=Moscow/L=Moscow/O=ITDRAFT.LAN/OU=IT/CN=test.itdraft.lan/emailAddress=admin@itdraft.ru' -out server.csr
 
+openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -days 365 -extensions req_ext -extfile openssl.cnf
+
+
+
+openssl x509 -req -in server.csr \
+  -CA ca.crt -CAkey ca.key -CAcreateserial \
+  -out server.crt -days 365 \
+  -extensions req_ext -extfile openssl.cnf
+
+
+openssl pkcs12 -export \
+  -in server.crt \
+  -inkey server.key \
+  -out server.pfx
+
+
+
+
+
 3. 
 Organization Name - наша локальная зона
 
@@ -19,3 +38,26 @@ Common Name - поддомен в локальной зоне
 в нижнее поле вставить содержимое файла-запроса mail.test.lan.csr;
 нажать кнопку Выдать.
 Загрузить файл сертификата (в карточке службы в разделе Сертификат службы нажать Действия — Загрузить).
+
+
+[ req ]
+default_bits = 2048
+default_md = sha256
+distinguished_name = dn
+req_extensions = req_ext
+prompt = no
+
+[ dn ]
+C = RU
+ST = YourState
+L = YourCity
+O = YourOrganization
+OU = YourOrganizationalUnit
+CN = rep.ald.lan
+
+[ req_ext ]
+subjectAltName = @alt_names
+
+[ alt_names ]
+DNS.1 = rep.ald.lan
+DNS.2 = ald.lan
