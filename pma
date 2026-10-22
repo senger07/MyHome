@@ -1,42 +1,34 @@
+Ставим RedOS8
+1. Docker
+В том же nmtui выберите «Настроить системное имя хоста». Или hostnamectl set-hostname
 
 sudo dnf install -y docker-ce docker-compose policycoreutils-python3 libselinux-python3
-
 sudo systemctl enable --now docker
 
-В том же nmtui выберите «Настроить системное имя хоста».
-
-Создаем БД
-dnf install postgresql15-server
-
-postgresql-15-setup initdb
-
-systemctl enable postgresql-15.service --now
-
-
-su - postgres
-
-
+2. Устанавливаем postgresql
+2.1
+     dnf install postgresql15-server
+     postgresql-15-setup initdb
+     systemctl enable postgresql-15.service --now
+2.2 
 nano /var/lib/pgsql/15/data/postgresql.conf
-
-
-listen_addresses = '*' 
-
-host all all 0.0.0.0/0 md5
+     listen_addresses = '*' 
+nano /var/lib/pgsql/15/data/pg_hba.conf
+     host all all 0.0.0.0/0 md5
+systemctl restart postgresql-15
 
 su - postgres
-psql
+\password
 ALTER USER postgres WITH ENCRYPTED PASSWORD '1234!@#$qwerQWER';
-
-
-
-
-psql -U postgres -h <host> -p <port>
 
 CREATE DATABASE "Core";
 CREATE DATABASE "CoreJobs";
 CREATE DATABASE "Idp";
 CREATE DATABASE "IdpJobs";
 CREATE DATABASE "ILS";
+
+2.3 Проверяем
+psql -U postgres -h <host> -p <port>
 
 
 
