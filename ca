@@ -1,0 +1,12 @@
+openssl genrsa -out /etc/pki/tls/private/web.key 2048
+
+
+ipa-getcert request \
+  -k /etc/pki/tls/private/web.key \
+  -f /etc/pki/tls/certs/web.crt \
+  -n "Web Server Certificate" \
+  -R "web.example.com" \
+  -T "Server Cert" \
+  -r
+
+ipa-getcert list
