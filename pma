@@ -1,0 +1,6 @@
+
+sudo dnf install -y docker-ce docker-compose policycoreutils-python3 libselinux-python3
+
+sudo systemctl enable --now docker
+
+В том же nmtui выберите «Настроить системное имя хоста».
