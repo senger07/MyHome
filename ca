@@ -1,27 +1,64 @@
-openssl genrsa -out /etc/pki/tls/private/web.key 2048
+ipa host-add pam.atom.lab --random --ip-address=IP_адрес_сервера_сайта --force
 
 
-ipa-getcert request \
-  -k /etc/pki/tls/private/web.key \
-  -f /etc/pki/tls/certs/web.crt \
-  -n "Web Server Certificate" \
-  -R "web.example.com" \
-  -T "Server Cert" \
-  -r
+Для сайта pam.atom.lab конкретные команды выполняются в два этапа: сначала на сервере, где развёрнут сайт (для генерации CSR и закрытого ключа), затем на контроллере домена (КД) ALD PRO (для подписи сертификата).
 
-ipa-getcert list
+Поскольку pam.atom.lab — это веб-сайт, в качестве principal (принципала Kerberos) используется HTTP/pam.atom.lab.
 
+Шаг первый: выполнить на сервере сайта (сгенерировать CSR)
+Войдите на сервер, где развёрнут pam.atom.lab, и сгенерируйте запрос на подпись сертификата (CSR) и закрытый ключ. Закрытый ключ должен оставаться на этом сервере и не должен передаваться на КД.
 
----------------
-openssl req -new -key /etc/pki/tls/private/web.key \
-  -out /tmp/web.csr \
-  -subj "/CN=pam.atom.lab" \
-  -addext "subjectAltName=DNS:pam.atom.lab"
+bash
+openssl req -new -newkey rsa:2048 -nodes \
+  -keyout pam.atom.lab.key \
+  -out pam.atom.lab.csr \
+  -subj "/CN=pam.atom.lab/O=ATOM.LAB"
+После выполнения в текущем каталоге будут созданы два файла: pam.atom.lab.key (закрытый ключ, сохраните его) и pam.atom.lab.csr (запрос на подпись, который нужно передать на КД).
 
+Шаг второй: выполнить на КД (подписать сертификат)
+Скопируйте файл pam.atom.lab.csr на контроллер домена ALD PRO и выполните от имени администратора (admin или другой учётной записи с правами ipa cert-request):
 
-Запросить сертификат через ipa cert-request (профиль уточнить ipa ca-profile-find):
+bash
+ipa cert-request pam.atom.lab.csr --principal=HTTP/pam.atom.lab
+В случае успеха команда выведет серийный номер (Serial number), например Serial number: 15. Запишите этот номер и выполните экспорт сертификата:
 
+bash
+ipa cert-show <серийный_номер> --out=pam.atom.lab.crt
+После выполнения будет получен файл pam.atom.lab.crt — это подписанный сертификат для pam.atom.lab.
 
+Шаг третий: вернуть сертификат на сервер сайта и настроить
+Скопируйте pam.atom.lab.crt обратно на сервер pam.atom.lab и настройте в конфигурации веб-сервера (Nginx/Apache) использование:
 
+Закрытый ключ: pam.atom.lab.key
 
-ipa cert-request --csr="\$(cat /tmp/web.csr)" --profile-id=Server-Cert
+Сертификат: pam.atom.lab.crt
+
+После настройки перезапустите веб-службу.
+
+Важное напоминание
+Principal HTTP/pam.atom.lab должен уже существовать в каталоге ALD PRO (обычно после присоединения хоста pam.atom.lab к домену он создаётся автоматически). Если при выполнении ipa cert-request возникает ошибка, связанная с principal, сначала на КД убедитесь, что хост существует:
+
+bash
+ipa host-show pam.atom.lab
+Если хост не существует, сначала добавьте его в ALD PRO, а затем выпускайте сертификат.
+
+как добавить?
+Найдено 15 веб-страниц
+Чтобы добавить хост pam.atom.lab в ALD PRO, рекомендуется сначала добавить учётную запись хоста на контроллере домена (КД) командой ipa host-add, а затем на сервере сайта выполнить команду aldpro-client-installer для присоединения к домену.
+
+Поскольку вы ранее хотели использовать ipa cert-request для выпуска сертификата, необходимо убедиться, что хост уже существует в каталоге ALD PRO. Ниже приведены два способа: ручное добавление и автоматическое присоединение к домену.
+
+Способ первый: вручную добавить хост на КД (для вашего текущего сценария)
+Выполните на контроллере домена ALD PRO:
+
+bash
+ipa host-add pam.atom.lab --random --ip-address=IP_адрес_сервера_сайта --force
+
+После выполнения команда выведет случайный одноразовый пароль (Random password), запишите его — он понадобится при присоединении к домену.
+Параметр --random означает генерацию случайного пароля, --ip-address создаёт DNS-запись, --force принудительно добавляет даже при наличии конфликта имён.
+После добавления вы можете использовать principal HTTP/pam.atom.lab для выполнения ipa cert-request, о котором говорили ранее.
+
+bash
+ipa host-show pam.atom.lab
+Если команда выведет информацию о хосте, значит добавление прошло успешно, и вы можете продолжить процедуру выпуска сертификата.
+
