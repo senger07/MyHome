@@ -37,3 +37,10 @@ CREATE DATABASE "CoreJobs";
 CREATE DATABASE "Idp";
 CREATE DATABASE "IdpJobs";
 CREATE DATABASE "ILS";
+
+
+
+-------------
+
+     "ContainerPath": "cn=users,cn=accounts,dc=aldpro1,dc=lan",
+          "UserName": "uid=admin,cn=users,cn=accounts,dc=aldpro1,dc=lan",
