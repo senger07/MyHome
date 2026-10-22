@@ -53,11 +53,11 @@ ST = YourState
 L = YourCity
 O = YourOrganization
 OU = YourOrganizationalUnit
-CN = rep.ald.lan
+CN = pam.atom.lab
 
 [ req_ext ]
 subjectAltName = @alt_names
 
 [ alt_names ]
-DNS.1 = rep.ald.lan
-DNS.2 = ald.lan
+DNS.1 = pam.atom.lab
+DNS.2 = atom.lab
