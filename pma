@@ -4,3 +4,36 @@ sudo dnf install -y docker-ce docker-compose policycoreutils-python3 libselinux-
 sudo systemctl enable --now docker
 
 В том же nmtui выберите «Настроить системное имя хоста».
+
+Создаем БД
+dnf install postgresql15-server
+
+postgresql-15-setup initdb
+
+systemctl enable postgresql-15.service --now
+
+
+su - postgres
+
+
+nano /var/lib/pgsql/15/data/postgresql.conf
+
+
+listen_addresses = '*' 
+
+host all all 0.0.0.0/0 md5
+
+su - postgres
+psql
+ALTER USER postgres WITH ENCRYPTED PASSWORD '1234!@#$qwerQWER';
+
+
+
+
+psql -U postgres -h <host> -p <port>
+
+CREATE DATABASE "Core";
+CREATE DATABASE "CoreJobs";
+CREATE DATABASE "Idp";
+CREATE DATABASE "IdpJobs";
+CREATE DATABASE "ILS";
