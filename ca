@@ -10,3 +10,18 @@ ipa-getcert request \
   -r
 
 ipa-getcert list
+
+
+---------------
+openssl req -new -key /etc/pki/tls/private/web.key \
+  -out /tmp/web.csr \
+  -subj "/CN=pam.atom.lab" \
+  -addext "subjectAltName=DNS:pam.atom.lab"
+
+
+Запросить сертификат через ipa cert-request (профиль уточнить ipa ca-profile-find):
+
+
+
+
+ipa cert-request --csr="\$(cat /tmp/web.csr)" --profile-id=Server-Cert
